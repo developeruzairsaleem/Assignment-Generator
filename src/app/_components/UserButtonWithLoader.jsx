@@ -1,15 +1,19 @@
-import { UserButton } from '@clerk/nextjs'
+'use client'
+import { UserButton, useUser } from '@clerk/nextjs'
 import React from 'react'
-import { Suspense } from 'react'
 function UserButtonWithLoader() {
+    
+    const {isLoaded} =  useUser()
 
-  return (
-    <div>
-        <Suspense fallback={<div className='w-8 h-8 rounded-full bg-gray-200' />}>
-            <UserButton/>
-        </Suspense>
-    </div>
-  )
+    if(!isLoaded){
+        return <div className='w-8 h-8 bg-gray-400 rounded-full' />
+    }
+
+
+    return (
+        <UserButton/>
+    )
+
 }
 
 export default UserButtonWithLoader

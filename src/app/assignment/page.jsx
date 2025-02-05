@@ -1,12 +1,9 @@
 import React from 'react'
 
-
-
-function page() {
-
+function  page() {
   return (
-    <div>onboarding page</div>
-  )
+    <div>assignment page</div>
+ )
 }
 
 export default page

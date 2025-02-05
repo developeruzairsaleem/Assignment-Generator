@@ -1,10 +1,9 @@
 
 import { SignUp } from '@clerk/nextjs'
-// import { auth } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation';
-import React from 'react'
-
+import React, { Suspense } from 'react'
+import Header from '@/app/_components/Header';
 
 async function page() {
   const {userId} =await auth();
@@ -12,8 +11,12 @@ async function page() {
     return redirect('/')
   }
   return (
-    <div className='flex justify-center items-center p-3'>
-        <SignUp/>
+    <div>
+      <div className='flex justify-center items-center p-3'>
+      
+          <SignUp/>
+      
+      </div>
     </div>
   )
 }

@@ -1,19 +1,21 @@
-import { headers } from "next/headers"
-import dbConnect from "./_database/dbConnect"
-import Todo from "./_models/Todo.model"
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import Header from "./_components/Header"
+
 
 export default async function Home(){
-  const {userId} =await  auth()
-  console.log(userId)
+  const {userId} = await  auth()
+  
+  // if user is not authenticated then redirect him to signin page
   if(!userId){
     return redirect('/signin')
   }
+
+  // else show the home page
   return (
     <div>
-      Home page
-    </div>
+      <div>Home page welcome to home!!</div>
+    </div> 
   )
 }
 
