@@ -5,7 +5,7 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en">
-        <body>
+        <body className="bg-white">
           <Header/>
           {children}
         </body>
