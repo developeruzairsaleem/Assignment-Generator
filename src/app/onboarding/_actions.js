@@ -1,42 +1,42 @@
 "use server"
 
-import {auth, clerkClient, currentUser} from "@clerk/nextjs/server"
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { NextRequest } from "next/server";
+import {auth, clerkClient} from "@clerk/nextjs/server"
 import * as Yup from "yup"
-export const completeOnboarding =async(prevState,formData)=>{
+
+
+
+// -----------------------------------
+// validation schema for the form data
+// -----------------------------------
+
+const validationSchema = Yup.object().shape({
+    universityEmail: Yup.string()
+      .email('Invalid email format')
+      .required('Email is required'),
+    section: Yup.string()
+      .min(1, 'Section is invalid')
+      .required('Section is required'),
+    semester: Yup.string()
+      .min(1, 'Semester is invalid')
+      .max(1, 'Semester is not valid')
+      .required('Semester is required'),
+    registrationNumber: Yup.string()
+      .required('Registration number is required'),
+    course: Yup.string()
+      .required('Course is required')
+  });
+
+
+
+
+
+
+export const completeOnboarding =async(data)=>{
     
 
-    const validationSchema = Yup.object().shape({
-        universityEmail: Yup.string()
-          .email('Invalid email format')
-          .required('Email is required'),
-        section: Yup.string()
-          .min(1, 'Section is invalid')
-          .required('Section is required'),
-        semester: Yup.string()
-          .min(1, 'Semester is invalid')
-          .max(1, 'Semester is not valid')
-          .required('Semester is required'),
-        registrationNumber: Yup.string()
-          .required('Registration number is required'),
-        course: Yup.string()
-          .required('Course is required')
-      });
-
-    
-
-    const refinedData = {
-        registrationNumber:formData.get('registrationNumber'),
-        universityEmail:formData.get('universityEmail'),
-        section:formData.get('section'),
-        semester:formData.get('semester'),
-        course:formData.get('course')
-    }
 
     try{
-        await validationSchema.validate(refinedData)
+        await validationSchema.validate(data)
 
     }
     catch(err){
@@ -57,13 +57,10 @@ export const completeOnboarding =async(prevState,formData)=>{
             const res = await client.users.updateUser(userId,{
                 publicMetadata:{
                 onboardingComplete:true,
-                ...refinedData
+                ...data
             }
         })
-        
-        revalidatePath('/onboarding')
-       
-        
+        return {message:res.publicMetadata}
     } catch (error) {
         console.log(error)
         return { error: 'There was an error updating the user info.' }

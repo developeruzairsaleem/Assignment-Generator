@@ -1,9 +1,23 @@
-'use client'
-import { useActionState } from 'react'
-import * as React from 'react'
-import { useUser } from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
-import { completeOnboarding } from './_actions'
+"use client";
+import * as React from "react";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { completeOnboarding } from "./_actions";
+import CircularProgress from '@mui/material/CircularProgress';
+import Stack from '@mui/material/Stack';
+
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -12,9 +26,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,161 +35,252 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useFormStatus } from 'react-dom'
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useUser } from "@clerk/nextjs";
 
 
-const initialState = {
-  error:""
-}
+
+
+
+const formSchema = z.object({
+  universityEmail: z
+    .string()
+    .min(8, {
+      message: "University Email must be at least 8 characters.",
+    })
+    .email({ message: "University Email must be a valid email" }),
+
+  registrationNumber: z
+    .string()
+    .min(6, { message: "Registration number must be atleast 6 characters" }),
+  course: z.string().min(4, { message: "Registered Course is required" }),
+  section: z.string().min(1, { message: "Section is required" }),
+  semester: z.string().min(1, { message: "Semester is required" }),
+});
+
+
+
+
+
+
 export default function OnboardingComponent() {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      universityEmail: "",
+      registrationNumber: "",
+      course: "",
+      section: "",
+      semester: "",
+    },
+  });
 
-  const [state,formAction,pending] =useActionState(completeOnboarding, initialState)
- 
-  
+  const [submitting, setSumbitting] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const {user} = useUser()
+  const router = useRouter();
+
+  const onSubmit = async (data) => {
+    let res;
+    try {
+      setSumbitting(true);
+     res = await completeOnboarding(data);
+    //  console.log('Server Action Response:', res); // Debug log
+    } catch (error) {
+      console.error("Something went wrong during submission", error);
+      setServerError("Something went wrong");
+      return;
+    }
+    try {
+
+      if (res?.message) {
+        
+        await user?.reload();
+        console.log("user reloaded")
+        router.push("/");
+        // console.log("redirect user triggered")
+      }
+      if (res?.error) {
+        setServerError(res?.error);
+      }
+    } catch (err) {
+      console.error("error occured while retrieving updated user",err)
+      setServerError("Something went wrong while doing reload");
+    }finally{
+      setSumbitting(false)
+    }
+  };
+
   return (
     <Card className="w-[350px] m-auto my-4">
       <CardHeader>
         <CardTitle className="text-center">Add University Info</CardTitle>
-        <CardDescription className="text-center" >Enter your university speicific information, like course,semester and section </CardDescription>
+        <CardDescription className="text-center">
+          Fill the form below with your  university info
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction}>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="universityEmail">University Email</Label>
-              <Input required name="universityEmail" id="universityEmail" placeholder="Enter your university Email" />
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="registrationNumber">Registration Number</Label>
-              <Input required name="registrationNumber" id="registrationNumber" placeholder="Enter your reg number like 22108216" />
-            </div>
-         
-            <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="semester">Semester</Label>
-            <Select name="semester">
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select your semester" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Semester</SelectLabel>
-          <SelectItem value="1">1</SelectItem>
-          <SelectItem value="2">2</SelectItem>
-          <SelectItem value="3">3</SelectItem>
-          <SelectItem value="4">4</SelectItem>
-          <SelectItem value="5">5</SelectItem>
-          <SelectItem value="6">6</SelectItem>
-          <SelectItem value="7">7</SelectItem>
-          <SelectItem value="8">8</SelectItem>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid w-full items-center gap-4">
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="universityEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>University Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your University Email" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Enter your university issued email address.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-        </SelectGroup>
-      </SelectContent>
-    </Select>
-            </div>
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="registrationNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Registration Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Your registration number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter your valid registration number.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+        
 
-            <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="section">Section</Label>
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="course"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Course</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select course" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="BSAI">BSAI</SelectItem>
+                          <SelectItem value="BSSE">BSSE</SelectItem>
+                          <SelectItem value="BSCS">BSCS</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select your course from the drop down
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                  />
+              </div>
 
-            <Select name="section">
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select your section" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Section</SelectLabel>
-          <SelectItem value="A">A</SelectItem>
-          <SelectItem value="B">B</SelectItem>
-          <SelectItem value="C">C</SelectItem>
-          <SelectItem value="D">D</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
-            </div>
-            <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="course">Course</Label>
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="semester"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Semester</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Semester" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="6">6</SelectItem>
+                          <SelectItem value="7">7</SelectItem>
+                          <SelectItem value="8">8</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select your semester from the drop down
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <Select name="course">
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select your course" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Course</SelectLabel>
-          <SelectItem value="BSAI">BSAI</SelectItem>
-          <SelectItem value="BSSE">BSSE</SelectItem>
-          <SelectItem value="BSCS">BSCS</SelectItem>
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="section"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Section</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Section" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="A">A</SelectItem>
+                          <SelectItem value="B">B</SelectItem>
+                          <SelectItem value="C">C</SelectItem>
+                          <SelectItem value="D">D</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select your section from the drop down
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            
+          </div>
 
-        </SelectGroup>
-      </SelectContent>
-    </Select>
-    </div>
-    </div>
-      
-        <Button disabled={pending} className={'mt-3 w-full py-4 disabled:bg-slate-300'} type='submit'>{pending?"Submitting...":'Submit'}</Button>
-      
-        </form>
-        <div className="h-5">
-        {state?.error && <p className="text-red-600 py-1">Error: {state?.error}</p>}
-        </div>
+            <button className={`disabled:bg-slate-700 hover:bg-slate-700 bg-black text-white w-full h-12 flex items-center justify-center p-2 rounded-md`} disabled={submitting} type="submit">
+              {
+                !submitting?
+                  'Submit'
+                :
+                  <Stack sx={{ color: 'white' }} spacing={2} direction="row">
+                    <CircularProgress size={'20px'} color="white" />
+                  </Stack>
+              }
+            </button>
+              <p>{serverError}</p>
+          </form>
+        </Form>
       </CardContent>
     </Card>
-  )
+  );
 }
-
-
-
-
-
-
-
-
-// export default function OnboardingComponent() {
- 
-//   return (
-//     <div className='p-4'>
-
-//     <div className='text-gray-700 border-2 border-gray-700 max-w-96 rounded-lg  mx-auto sm:mx-auto'>
-//       <h1>Welcome</h1>
-//       <form action={handleSubmit}>
-//         <div>
-//           <label>University Email</label>
-//           <p>Enter Your University Email. Example(22108216@szabist-isb.pk)</p>
-//           <input class="text-black" type="email" name="universityEmail" required />
-//         </div>
-
-//         <div>
-//           <label>Registration Number</label>
-//           <p>Enter your Registration Number. Examle:(22108216).</p>
-//           <input class="text-black" type="text" name="registrationNumber" required />
-//         </div>
-
-//         <div>
-//           <label>Course</label>
-//           <p>Enter your Course. Example:(BSAI)</p>
-//           <input class="text-black" type="text" name="course" required />
-//         </div>
-        
-//         <div>
-//           <label>Semester</label>
-//           <p>Enter your Semester. Example(5).</p>
-//           <input class="text-black" type="text" name="semester" required />
-//         </div>
-
-//         <div>
-//           <label>Section</label>
-//           <p>Enter your Section. Example(B).</p>
-//           <input class="text-black" type="text" name="section" required />
-//         </div>
-
-
-
-//        
-//         <Button type="submit">Submit</Button>
-//       </form>
-//     </div>
-//     </div>
-//   )
-// }
