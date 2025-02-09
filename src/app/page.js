@@ -1,13 +1,12 @@
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+// import { Input } from "@/components/ui/input"
+// import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { GoPlusCircle } from "react-icons/go";
 import { FaArrowRight } from "react-icons/fa";
-
-
 import { Label } from "@/components/ui/label"
+import { aiAction } from "./_actions";
 
 
 export default async function Home(){
@@ -21,7 +20,7 @@ export default async function Home(){
   
   return (
     <div className="bg-neutral-100">
-      <div className="w-full h-screen flex items-center justify-center mb-96 px-5 sm:max-[850px]">
+      <div className="w-full min-h-screen flex items-center justify-center px-5 sm:max-[850px]">
 
         <div className="chat_container  ">
           <h1 className="bg-gradient-to-r mb-3 from-black via-pink-700 to-violet-700 inline-block text-transparent bg-clip-text font-semibold text-5xl">
@@ -35,14 +34,7 @@ export default async function Home(){
           </p>
 
           <div className="bg-white my-4">
-          <form action={
-            async (formData)=>{
-              'use server'
-              console.log("Attachment",formData.get('attachment'))
-              console.log('prompt',formData.get('prompt'))
-
-            }
-          }>
+          <form action={aiAction}>
 
             <textarea className={'outline-none border- w-full p-2 resize-none text-neutral-600'} name="prompt" placeholder="Type your message here." />
             <div className="flex justify-between p-2">
