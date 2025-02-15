@@ -1,5 +1,3 @@
-// import { Input } from "@/components/ui/input"
-// import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
@@ -7,7 +5,8 @@ import { GoPlusCircle } from "react-icons/go";
 import { FaArrowRight } from "react-icons/fa";
 import { Label } from "@/components/ui/label"
 import { aiAction } from "./_actions";
-
+import React from 'react'
+ 
 
 export default async function Home(){
   const {userId} = await  auth()

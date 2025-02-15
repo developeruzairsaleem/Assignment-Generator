@@ -4,9 +4,10 @@ import { NextRequest, NextResponse } from 'next/server'
 const isOnboardingRoute = createRouteMatcher(['/onboarding'])
 const isPublicRoute = createRouteMatcher(['/signin','/signup'])
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, req:NextRequest) => {
   const { userId, sessionClaims, redirectToSignIn } = await auth()
 
+  console.log("session claims variable here", sessionClaims)
   // For users visiting /onboarding, don't try to redirect
   if (userId && isOnboardingRoute(req)) {
     return NextResponse.next()

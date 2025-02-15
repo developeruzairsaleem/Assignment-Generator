@@ -67,6 +67,7 @@ export const completeOnboarding =async(data)=>{
     }
     
     } catch (error) {
+        console.error("Error occured in onboarding action",error)
         return { error: 'something went wrong' }
     
     }
