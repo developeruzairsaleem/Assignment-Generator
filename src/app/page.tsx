@@ -39,8 +39,8 @@ export default async function Home(){
             <div className="flex justify-between p-2">
                <input className="hidden" id='attachment' name ='attachment' type='file' />
               <Label htmlFor={'attachment'} className="text-neutral-400 hover:cursor-pointer hover:text-neutral-500 flex items-center gap-2 justify-center">
-               <GoPlusCircle />
-               Add Attachment
+                <GoPlusCircle />
+                Add Attachment
               </Label>
 
               <Button className="bg-violet-700 hover:bg-violet-800 p-2 text-md" type="submit">
